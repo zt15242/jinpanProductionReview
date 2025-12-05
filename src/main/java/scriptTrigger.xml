@@ -57,6 +57,13 @@
                 <order>6</order>
                 <class>other.xsy.expensedetail.trigger.ExpenseDetailTrigger</class>
             </trigger>
+           <trigger>
+                <object>task</object>
+                <operate>update</operate>
+                <position>before</position>
+                <order>1</order>
+                <class>other.xsy.task.trigger.TaskforLeadTrigger</class>
+            </trigger>
 <!--            <trigger>-->
 <!--                <object>expenseDetail__c</object>-->
 <!--                <operate>update</operate>-->
