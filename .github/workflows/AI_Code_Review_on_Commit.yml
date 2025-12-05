@@ -1,0 +1,103 @@
+name: AI Code Review on Commit
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+    paths:
+      - '**.apex'
+      - '**.cls'
+      - '**.trigger'
+      - '**.java'
+      - '**.js'
+      - '**.ts'
+      - '**.py'
+      - '**.go'
+      - '**.cpp'
+      - '**.c'
+      - '**.cs'
+      - '**.php'
+      - '**.rb'
+      - '**.swift'
+      - '**.kt'
+      - '**.scala'
+  workflow_dispatch:
+    inputs:
+      commit_hash:
+        description: '特定提交的哈希值（可选）'
+        required: false
+        type: string
+
+jobs:
+  ai-code-review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+      - name: Debug Info
+        run: |
+          echo "=== 代码审查触发信息 ==="
+          echo "事件: ${{ github.event_name }}"
+          echo "仓库: ${{ github.repository }}"
+          echo "分支: ${{ github.ref }}"
+          echo "提交者: ${{ github.actor }}"
+          echo "提交哈希: ${{ github.sha }}"
+          echo "提交消息: ${{ github.event.head_commit.message }}"
+          
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install zhipuai sniffio anyio httpx requests
+          
+      - name: Run AI Code Review
+        env:
+          ZHIPU_API_KEY: ${{ secrets.ZHIPU_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMIT_HASH: ${{ github.sha }}
+          REPO_NAME: ${{ github.repository }}
+          FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+        run: |
+          echo "=== 运行提交时AI代码审查 ==="
+          echo "提交哈希: $COMMIT_HASH"
+          echo "仓库: $REPO_NAME"
+          echo "分支: ${{ github.ref }}"
+          
+          # 运行审查脚本
+          python .github/scripts/commit_code_review.py
+          
+      - name: Upload Review Result
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ai-code-review-${{ github.sha }}-${{ github.run_number }}
+          path: |
+            code_review_*.md
+          retention-days: 7
+          
+      - name: Send to Feishu
+        if: always()
+        env:
+          FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+          COMMIT_HASH: ${{ github.sha }}
+          REPO_NAME: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: |
+          if [ -f "code_review_result.md" ]; then
+            echo "📤 发送飞书通知..."
+            python .github/scripts/feishu_notifier.py
+          else
+            echo "⚠️  无审查结果文件，跳过飞书通知"
+          fi
