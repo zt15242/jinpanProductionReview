@@ -64,6 +64,33 @@
                 <order>1</order>
                 <class>other.xsy.task.trigger.TaskforLeadTrigger</class>
             </trigger>
+			        <trigger>
+            <object>Inquiry__c</object>
+            <operate>add</operate>
+            <position>after</position>
+            <order>1</order>
+            <class>other.coloplast.impl.trigger.inquiry.AfterInsertTrigger</class>
+        </trigger>
+        <trigger>
+            <object>Inquiry__c</object>
+            <operate>update</operate>
+            <position>before</position>
+            <order>1</order>
+            <class>other.coloplast.impl.trigger.inquiry.BeforeUpdateTrigger</class>
+        </trigger>
+        <trigger>
+            <object>Inquiry__c</object>
+            <operate>update</operate>
+            <position>after</position>
+            <order>1</order>
+            <class>other.coloplast.impl.trigger.inquiry.AfterUpdateTrigger</class>
+        </trigger>
+        <approvalevent>
+            <object>inquiry__c</object>
+            <operate>submit</operate>
+            <position>after</position>
+            <class>other.coloplast.impl.trigger.inquiry.InquiryApprovalFlow</class>
+        </approvalevent>
 <!--            <trigger>-->
 <!--                <object>expenseDetail__c</object>-->
 <!--                <operate>update</operate>-->
